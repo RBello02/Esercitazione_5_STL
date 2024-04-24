@@ -301,49 +301,53 @@ bool importCell2D(const string &filename,
         mesh.EdgesCell2D.push_back(edges);
 
         // TEST LUNGHEZZA E AREA
-
-        if (NumVertices == 3)
+        double somma = 0;
+        for (unsigned int i = 0; i<NumVertices-1; i++)
         {
-            Vector2d coordinate_1 = mesh.Coppia_coordinate_id[vertices(0)];         // vettore contenente le coordinate dei vertici
-            Vector2d coordinate_2 = mesh.Coppia_coordinate_id[vertices(1)];
-            Vector2d coordinate_3 = mesh.Coppia_coordinate_id[vertices(2)];
+
+            //cout << vertices(i)<< " "<< vertices(i+1) << endl;
+            Vector2d coordinate_1 = mesh.Coppia_coordinate_id[vertices(i)];         // vettore contenente le coordinate dei vertici
+            Vector2d coordinate_2 = mesh.Coppia_coordinate_id[vertices(++i)];
+
             //cout << coordinate_1[0] <<" " <<coordinate_1[1]<< endl;
 
             double lunghezza_12 = sqrt((coordinate_1[0]-coordinate_2[0])*(coordinate_1[0]-coordinate_2[0]) + (coordinate_1[1]-coordinate_2[1])*(coordinate_1[1]-coordinate_2[1]));
-            double lunghezza_23 = sqrt((coordinate_2[0]-coordinate_3[0])*(coordinate_2[0]-coordinate_3[0]) + (coordinate_2[1]-coordinate_3[1])*(coordinate_2[1]-coordinate_3[1]));
-            double lunghezza_13 = sqrt((coordinate_1[0]-coordinate_3[0])*(coordinate_1[0]-coordinate_3[0]) + (coordinate_1[1]-coordinate_3[1])*(coordinate_1[1]-coordinate_3[1]));
 
 
-            if (lunghezza_12 <= mesh.tol_lunghezze || lunghezza_13 <= mesh.tol_lunghezze || lunghezza_23 <= mesh.tol_lunghezze )
+            if (lunghezza_12 <= mesh.tol_lunghezze)
             {
                 cerr << "Distanza tra i vertici minore della tolleranza" << endl;
             }
 
-            double area = 0.5*( coordinate_1[0]*(coordinate_2[1]-coordinate_3[1]) - coordinate_1[1]*(coordinate_2[0]-coordinate_3[0]) + (coordinate_2[0]*coordinate_3[1]-coordinate_3[0]*coordinate_2[1]));
+            //cout <<  coordinate_1[0]<< " " <<  coordinate_1[1]<< endl;
+            //cout <<  coordinate_2[0]<< " " <<  coordinate_2[1]<< endl;
 
-            if(area < 0)
-                area = -area;       // ne considero il valore assoluto
+            somma += ( coordinate_1[0]*coordinate_2[1] - coordinate_1[1]*coordinate_2[0]);
+            //cout << somma <<endl;
+        }
+        Vector2d coordinate_1 = mesh.Coppia_coordinate_id[vertices(NumVertices-1)];         // gli ultimi termini li metto fuori dal for, considerando anche che y(n+1) = y(1)
+        Vector2d coordinate_2 = mesh.Coppia_coordinate_id[vertices(0)];
+        somma += ( coordinate_1[0]*coordinate_2[1] - coordinate_1[1]*coordinate_2[0]);
 
-            /*
-            cout << coordinate_1[0] << " " << coordinate_1[1] << endl;
-            cout << coordinate_2[0] << " " << coordinate_2[1] << endl;
-            cout << coordinate_3[0] << " " << coordinate_3[1] << endl;
-            cout <<"area "<< setprecision(16)<< scientific << area << endl;
-            */
-            if (mesh.tol_aree > mesh.tol_lunghezze)
+        if(somma < 0)
+            somma = -0.5*somma;       // ne considero il valore assoluto
+        else
+            somma = 0.5*somma;
+        //cout << somma << endl;
+
+        if (mesh.tol_aree > mesh.tol_lunghezze)
+        {
+            if (somma <= mesh.tol_aree)
             {
-                if (area <= mesh.tol_aree)
-                {
-                    cerr << "Area di un triangolo minore della tolleranza"<< endl;
-                }
+                cerr << "Area di un poligono minore della tolleranza"<< endl;
             }
-            else
+        }
+        else
+        {
+            if ( somma <= mesh.tol_lunghezze)
             {
-                if ( area <= mesh.tol_lunghezze)
-                {
-                    cerr << "Area di un triangolo minore della tolleranza"<< endl;
+                cerr << "Area di un poligono minore della tolleranza"<< endl;
 
-                }
             }
         }
 
